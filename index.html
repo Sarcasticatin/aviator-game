@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Jarvis Aviator Pro</title>
+<title>Jarvis Aviator Pro+</title>
 
 <style>
 body{
@@ -11,18 +11,12 @@ body{
   text-align:center;
 }
 
-h1{color:#22c55e; margin-top:10px;}
+h1{color:#22c55e;}
 
 #multiplier{
-  font-size:70px;
+  font-size:75px;
   font-weight:bold;
-  margin:10px;
-  text-shadow:0 0 20px red;
-}
-
-#status{
-  font-size:14px;
-  opacity:0.7;
+  text-shadow:0 0 25px red;
 }
 
 #gameArea{
@@ -34,16 +28,16 @@ h1{color:#22c55e; margin-top:10px;}
   background:#020617;
   border:1px solid #1e293b;
   overflow:hidden;
-  box-shadow:0 0 30px rgba(255,0,0,0.3);
+  box-shadow:0 0 35px rgba(255,0,0,0.3);
 }
 
 canvas{position:absolute;}
 
 #plane{
   position:absolute;
-  font-size:26px;
+  font-size:30px;
   transform:translate(-50%,-50%);
-  filter:drop-shadow(0 0 8px red);
+  filter:drop-shadow(0 0 10px red);
 }
 
 button{
@@ -55,7 +49,6 @@ button{
 
 #betBtn{background:#22c55e;}
 #cashBtn{background:#ef4444;}
-
 </style>
 </head>
 
@@ -65,7 +58,6 @@ button{
 
 <div id="balance">Balance: ₹1000</div>
 <div id="multiplier">1.00x</div>
-<div id="status">Waiting for next round...</div>
 
 <input type="number" id="bet" value="100"><br>
 
@@ -79,14 +71,24 @@ button{
 
 <p id="result"></p>
 
+<!-- SOUND -->
+<audio id="engine" src="https://www.soundjay.com/mechanical/airplane-flying-01.mp3" loop></audio>
+<audio id="crash" src="https://www.soundjay.com/explosion/explosion-01.mp3"></audio>
+
 <script>
 
 let multiplier=1, balance=1000, bet=100;
-let crashed=true, interval, x=0;
+let crashed=true, x=0;
 
 let ctx=document.getElementById("graph").getContext("2d");
 let plane=document.getElementById("plane");
 
+let engine=document.getElementById("engine");
+let crashSound=document.getElementById("crash");
+
+let animation;
+
+// START
 function startGame(){
 
 bet=parseInt(document.getElementById("bet").value);
@@ -94,9 +96,6 @@ if(bet>balance) return alert("Low balance");
 
 balance-=bet;
 document.getElementById("balance").innerText="Balance: ₹"+balance;
-
-document.getElementById("status").innerText="Flying...";
-document.getElementById("result").innerText="";
 
 multiplier=1;
 crashed=false;
@@ -106,58 +105,67 @@ ctx.clearRect(0,0,360,260);
 ctx.beginPath();
 ctx.moveTo(0,260);
 
-interval=setInterval(()=>{
+// SOUND start
+engine.currentTime=0;
+engine.play();
 
-multiplier*=1.03;
+function animate(){
+
+if(crashed) return;
+
+multiplier*=1.02;
 document.getElementById("multiplier").innerText=multiplier.toFixed(2)+"x";
 
 // smooth curve
-let y = 260 - Math.pow(multiplier,1.6)*4;
-if(y<30) y=30;
+let y=260-Math.pow(multiplier,1.7)*3.5;
+if(y<25) y=25;
 
-// glow
+// glow line
 ctx.strokeStyle="red";
-ctx.shadowBlur=20;
+ctx.shadowBlur=25;
 ctx.lineWidth=3;
 ctx.lineTo(x,y);
 ctx.stroke();
 
-// center feel movement
-plane.style.left = x + "px";
-plane.style.top = y + "px";
+// plane movement
+plane.style.left=x+"px";
+plane.style.top=y+"px";
 
 let angle=Math.min(50,multiplier*4);
 plane.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`;
 
-x+=2.5;
+x+=2;
 
 // crash logic
-if(Math.random()<0.012+multiplier/120){
-clearInterval(interval);
+if(Math.random()<0.012+multiplier/130){
 crashed=true;
 
-document.getElementById("status").innerText="Crashed!";
+// SOUND stop + crash
+engine.pause();
+crashSound.play();
+
 document.getElementById("result").innerText="💥 "+multiplier.toFixed(2)+"x";
-
-setTimeout(()=>{
-document.getElementById("status").innerText="Waiting for next round...";
-},2000);
-
+return;
 }
 
-},80);
+animation=requestAnimationFrame(animate);
 }
 
+animate();
+}
+
+// CASHOUT
 function cashOut(){
-if(!crashed && interval){
-clearInterval(interval);
+if(!crashed){
+crashed=true;
+
+engine.pause();
 
 let win=bet*multiplier;
 balance+=Math.floor(win);
 
 document.getElementById("balance").innerText="Balance: ₹"+balance;
 document.getElementById("result").innerText="✅ "+multiplier.toFixed(2)+"x";
-document.getElementById("status").innerText="Cashed Out!";
 }
 }
 
