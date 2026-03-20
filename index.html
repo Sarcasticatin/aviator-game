@@ -1,74 +1,83 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Jarvis Aviator Ultimate Fix</title>
+<title>Jarvis Aviator Raula Edition</title>
+
 <style>
-body {
+body{
   background:#020617;
   color:white;
   font-family:Arial;
   text-align:center;
 }
 
-h1 {color:#22c55e;}
+h1{color:#22c55e;}
 
-#multiplier {
-  font-size:60px;
-  text-shadow:0 0 15px red;
+#multiplier{
+  font-size:65px;
+  text-shadow:0 0 20px red;
 }
 
-#balance {margin:10px;}
+#balance{margin:10px;}
 
-#gameArea {
+#gameArea{
   position:relative;
-  width:340px;
-  height:240px;
+  width:350px;
+  height:250px;
   margin:auto;
+  border-radius:12px;
   background:#020617;
-  border-radius:10px;
   overflow:hidden;
   border:1px solid #1e293b;
+  box-shadow:0 0 25px rgba(255,0,0,0.3);
 }
 
-canvas {position:absolute;}
+canvas{position:absolute;}
 
-#plane {
+#plane{
   position:absolute;
-  font-size:20px;
-  transform: translate(-50%, -50%);
-  transition: all 0.1s linear;
-  filter: drop-shadow(0 0 6px red);
+  font-size:22px;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 0 6px red);
 }
 
-button {
+button{
   padding:8px 16px;
   margin:5px;
   border:none;
   border-radius:5px;
-  font-size:14px;
 }
 
-#betBtn {background:#22c55e;}
-#cashBtn {background:#ef4444;}
+#betBtn{background:#22c55e;}
+#cashBtn{background:#ef4444;}
 
-#players {
-  height:50px;
+#players{
+  height:40px;
   overflow:hidden;
   font-size:12px;
   opacity:0.8;
 }
 
-#history span {
-  margin:3px;
-  font-size:12px;
+#history span{
+  margin:4px;
   color:#22c55e;
+  font-size:12px;
+}
+
+.flash{
+  animation:flash 0.3s;
+}
+
+@keyframes flash{
+  0%{background:red;}
+  100%{background:#020617;}
 }
 </style>
 </head>
 
 <body>
 
-<h1>✈️ Jarvis Aviator Ultimate</h1>
+<h1>✈️ Jarvis Aviator</h1>
 
 <div id="balance">Balance: ₹1000</div>
 <div id="multiplier">1.00x</div>
@@ -80,48 +89,51 @@ button {
 <button id="cashBtn" onclick="cashOut()">Cash Out</button>
 
 <div id="gameArea">
-  <canvas id="graph" width="340" height="240"></canvas>
+  <canvas id="graph" width="350" height="250"></canvas>
   <div id="plane">✈️</div>
 </div>
 
-<div style="margin-top:10px;">
-  <div id="players"></div>
-  <div id="history"></div>
-</div>
+<div id="players"></div>
+<div id="history"></div>
 
 <p id="result"></p>
 
+<audio id="engine" src="https://www.soundjay.com/mechanical/airplane-flying-01.mp3"></audio>
+<audio id="crash" src="https://www.soundjay.com/explosion/explosion-01.mp3"></audio>
+
 <script>
-let multiplier=1;
-let balance=1000;
-let bet=100;
-let crashed=false;
-let interval;
+
+let multiplier=1, balance=1000, bet=100, crashed=false, interval;
 let x=0;
 
 let ctx=document.getElementById("graph").getContext("2d");
 let plane=document.getElementById("plane");
 
+let engine=document.getElementById("engine");
+let crashSound=document.getElementById("crash");
+
 let history=[];
 
+// fake players ticker
 function fakePlayers(){
-let names=["Ravi","Amit","Neha","Suresh","Pooja"];
-let text="";
+let names=["Ravi","Amit","Neha","Pooja","Rahul"];
+let txt="";
 names.forEach(n=>{
-let m=(Math.random()*4+1).toFixed(2);
-text+=n+" "+m+"x<br>";
+txt+=n+" "+(Math.random()*4+1).toFixed(2)+"x<br>";
 });
-document.getElementById("players").innerHTML=text;
+document.getElementById("players").innerHTML=txt;
 }
 
+// history
 function updateHistory(m){
 history.unshift(m);
-history=history.slice(0,5);
+history=history.slice(0,6);
 let html="";
 history.forEach(h=> html+="<span>"+h+"x</span>");
 document.getElementById("history").innerHTML=html;
 }
 
+// start
 function startGame(){
 
 bet=parseInt(document.getElementById("bet").value);
@@ -134,55 +146,72 @@ multiplier=1;
 crashed=false;
 x=0;
 
-ctx.clearRect(0,0,340,240);
+ctx.clearRect(0,0,350,250);
 ctx.beginPath();
-ctx.moveTo(0,240);
+ctx.moveTo(0,250);
+
+engine.currentTime=0;
+engine.play();
 
 interval=setInterval(()=>{
 
 multiplier*=1.02;
 document.getElementById("multiplier").innerText=multiplier.toFixed(2)+"x";
 
-// SAFE Y CALCULATION
-let y = 240 - Math.pow(multiplier,1.5)*5;
+// curve
+let y=250-Math.pow(multiplier,1.5)*5;
+if(y<20) y=20;
 
-// LIMIT so plane never disappears
-if(y < 20) y = 20;
-
-// GRAPH
+// glow trail
 ctx.strokeStyle="red";
-ctx.shadowBlur=10;
+ctx.shadowBlur=15;
 ctx.lineWidth=3;
 ctx.lineTo(x,y);
 ctx.stroke();
 
-// PLANE (perfect center alignment)
-plane.style.left = x + "px";
-plane.style.top = y + "px";
+// plane move
+plane.style.left=x+"px";
+plane.style.top=y+"px";
+
+// tilt
+let angle=Math.min(50,multiplier*5);
+plane.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`;
 
 x+=3;
 
-// Controlled fake players
-if(Math.random()<0.3) fakePlayers();
+// fake players slow
+if(Math.random()<0.25) fakePlayers();
 
-// Auto cashout
+// auto cashout
 let auto=document.getElementById("autoCash").value;
 if(auto && multiplier>=auto) cashOut();
 
-// Crash logic
-if(Math.random()<0.01+multiplier/150){
+// crash logic
+if(Math.random()<0.01+multiplier/140){
 clearInterval(interval);
 crashed=true;
+
+engine.pause();
+crashSound.play();
+
+document.body.classList.add("flash");
+setTimeout(()=>document.body.classList.remove("flash"),300);
+
 updateHistory(multiplier.toFixed(2));
-document.getElementById("result").innerText="💥 Crash "+multiplier.toFixed(2)+"x";
+
+document.getElementById("result").innerText=
+"💥 Crash "+multiplier.toFixed(2)+"x";
 }
 
 },100);
 }
 
+// cashout
 function cashOut(){
 if(!crashed && interval){
 clearInterval(interval);
+
+engine.pause();
 
 let win=bet*multiplier;
 balance+=Math.floor(win);
@@ -191,10 +220,11 @@ document.getElementById("balance").innerText="Balance: ₹"+balance;
 
 updateHistory(multiplier.toFixed(2));
 
-document.getElementById("result").innerText="✅ Cashed "+multiplier.toFixed(2)+"x";
+document.getElementById("result").innerText=
+"✅ Cashed "+multiplier.toFixed(2)+"x";
 }
 }
-</script>
 
+</script>
 </body>
 </html>
