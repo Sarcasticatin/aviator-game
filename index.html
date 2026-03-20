@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Jarvis Aviator Ultimate</title>
+<title>Jarvis Aviator Casino</title>
 
 <style>
 body{
   margin:0;
-  background:#020617;
+  background:radial-gradient(circle,#020617,#000);
   color:white;
   font-family:system-ui;
   text-align:center;
+  overflow:hidden;
 }
 
-h1{color:#22c55e; margin:10px;}
+h1{color:#22c55e;}
 
 #multiplier{
-  font-size:80px;
-  text-shadow:0 0 25px red;
+  font-size:90px;
+  text-shadow:0 0 30px red,0 0 60px red;
 }
 
 #gameArea{
   position:relative;
   width:100%;
-  height:300px;
+  height:320px;
   overflow:hidden;
   border-top:1px solid #1e293b;
   border-bottom:1px solid #1e293b;
 }
 
-/* GRID BACKGROUND */
+/* moving grid */
 #grid{
   position:absolute;
   width:200%;
@@ -37,10 +38,9 @@ h1{color:#22c55e; margin:10px;}
     linear-gradient(#0f172a 1px, transparent 1px),
     linear-gradient(90deg,#0f172a 1px, transparent 1px);
   background-size:40px 40px;
-  animation:moveGrid 2s linear infinite;
+  animation:gridMove 2s linear infinite;
 }
-
-@keyframes moveGrid{
+@keyframes gridMove{
   from{transform:translateX(0);}
   to{transform:translateX(-40px);}
 }
@@ -49,9 +49,9 @@ canvas{position:absolute;}
 
 #plane{
   position:absolute;
-  font-size:34px;
+  font-size:36px;
   transform:translate(-50%,-50%);
-  filter:drop-shadow(0 0 10px red);
+  filter:drop-shadow(0 0 12px red);
 }
 
 button{
@@ -59,10 +59,19 @@ button{
   margin:6px;
   border:none;
   border-radius:6px;
+  font-weight:bold;
 }
 
 #betBtn{background:#22c55e;}
 #cashBtn{background:#ef4444;}
+
+.flash{
+  animation:flash 0.3s;
+}
+@keyframes flash{
+  0%{background:red;}
+  100%{background:#020617;}
+}
 </style>
 </head>
 
@@ -80,29 +89,38 @@ button{
 
 <div id="gameArea">
   <div id="grid"></div>
-  <canvas id="graph" width="800" height="300"></canvas>
+  <canvas id="graph" width="900" height="320"></canvas>
   <div id="plane">✈️</div>
 </div>
 
 <p id="result"></p>
 
-<!-- 🔊 SOUND -->
+<!-- SOUND -->
 <audio id="engine" src="https://www.soundjay.com/mechanical/airplane-flying-01.mp3" loop></audio>
 <audio id="crash" src="https://www.soundjay.com/explosion/explosion-01.mp3"></audio>
+<audio id="click" src="https://www.soundjay.com/buttons/button-3.mp3"></audio>
 
 <script>
 
-let multiplier=1, balance=1000, bet=100;
-let crashed=true, x=50;
+let multiplier=1,balance=1000,bet=100;
+let crashed=true,x=60;
 
 let ctx=document.getElementById("graph").getContext("2d");
 let plane=document.getElementById("plane");
 
 let engine=document.getElementById("engine");
 let crashSound=document.getElementById("crash");
+let clickSound=document.getElementById("click");
+
+// iPhone unlock sound
+document.body.addEventListener("click",()=>{
+engine.play().then(()=>engine.pause());
+},{once:true});
 
 // START GAME
 function startGame(){
+
+clickSound.play();
 
 bet=parseInt(document.getElementById("bet").value);
 if(bet>balance) return alert("Low balance");
@@ -112,15 +130,15 @@ document.getElementById("balance").innerText="Balance: ₹"+balance;
 
 multiplier=1;
 crashed=false;
-x=50;
+x=60;
 
-ctx.clearRect(0,0,800,300);
+ctx.clearRect(0,0,900,320);
 ctx.beginPath();
-ctx.moveTo(50,280);
+ctx.moveTo(60,300);
 
-// 🔊 ENGINE SOUND START
+// engine sound
 engine.currentTime=0;
-engine.play();
+engine.play().catch(()=>{});
 
 function animate(){
 
@@ -129,34 +147,36 @@ if(crashed) return;
 multiplier*=1.025;
 document.getElementById("multiplier").innerText=multiplier.toFixed(2)+"x";
 
-// smooth curve
-let y=280-Math.pow(multiplier,1.6)*3;
-if(y<40) y=40;
+let y=300-Math.pow(multiplier,1.6)*3;
+if(y<50) y=50;
 
 // glow line
 ctx.strokeStyle="red";
-ctx.shadowBlur=25;
-ctx.lineWidth=5;
+ctx.shadowBlur=30;
+ctx.lineWidth=6;
 ctx.lineTo(x,y);
 ctx.stroke();
 
-// plane movement
+// plane
 plane.style.left=x+"px";
 plane.style.top=y+"px";
 
-// tilt
 let angle=Math.min(50,multiplier*4);
 plane.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`;
 
 x+=3;
 
-// crash logic
+// crash
 if(Math.random()<0.012+multiplier/120){
 crashed=true;
 
-// 🔊 SOUND STOP + CRASH
 engine.pause();
-crashSound.play();
+crashSound.currentTime=0;
+crashSound.play().catch(()=>{});
+
+// flash effect
+document.body.classList.add("flash");
+setTimeout(()=>document.body.classList.remove("flash"),300);
 
 document.getElementById("result").innerText="💥 "+multiplier.toFixed(2)+"x";
 return;
@@ -168,8 +188,11 @@ requestAnimationFrame(animate);
 animate();
 }
 
-// CASHOUT
+// CASH OUT
 function cashOut(){
+
+clickSound.play();
+
 if(!crashed){
 crashed=true;
 
