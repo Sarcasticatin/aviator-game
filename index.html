@@ -8,9 +8,23 @@
         :root { --red: #ff003c; --green: #2ecc71; --gold: #f1c40f; }
         body { margin: 0; background: #000; color: white; font-family: -apple-system, sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
-        /* Sound Unlock Overlay */
-        #gate { position: fixed; inset: 0; background: radial-gradient(circle, #222, #000); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        #gate button { padding: 25px 60px; border-radius: 15px; border: 2px solid var(--red); background: transparent; color: white; font-weight: 900; font-size: 22px; cursor: pointer; box-shadow: 0 0 30px var(--red); text-transform: uppercase; }
+        /* Premium Start Screen */
+        #gate { 
+            position: fixed; inset: 0; 
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); 
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; 
+        }
+        
+        .plane-logo { font-size: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 20px var(--red)); animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        #gate button { 
+            padding: 22px 70px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.2); 
+            background: var(--red); color: white; font-weight: 900; font-size: 24px; cursor: pointer; 
+            box-shadow: 0 15px 35px rgba(255, 0, 60, 0.4); text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.3s;
+        }
+        #gate button:active { transform: scale(0.9); box-shadow: 0 5px 15px rgba(255, 0, 60, 0.2); }
 
         .container { width: 92%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
         .screen { position: relative; height: 350px; background: #050505; border-radius: 25px; border: 1px solid #222; overflow: hidden; box-shadow: inset 0 0 40px #000; }
@@ -29,9 +43,10 @@
 <body>
 
 <div id="gate">
-    <div style="font-size: 70px; margin-bottom: 20px;">🔊</div>
-    <button onclick="unlockAudio()">ACTIVATE SOUND</button>
-    <p style="color:#666; margin-top:25px; font-size:13px;">CHECK: MUTE SWITCH MUST BE <b>OFF</b></p>
+    <div class="plane-logo">🚀</div>
+    <h2 style="letter-spacing: 4px; font-weight: 300; margin-bottom: 30px;">AVIATOR PRO</h2>
+    <button onclick="unlockAudio()">START GAME</button>
+    <p style="color:#444; margin-top:25px; font-size:11px; text-transform: uppercase; letter-spacing: 2px;">Enter the Cockpit</p>
 </div>
 
 <div class="container">
@@ -57,11 +72,9 @@
 <script>
     let audioCtx;
     
-    // Final iPhone Fix: Forced Oscillator Sound
     function unlockAudio() {
         document.getElementById('gate').style.display = 'none';
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        // Play silent note to prime the speaker
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         gain.gain.value = 0;
@@ -69,7 +82,6 @@
         osc.start(); osc.stop(0.1);
     }
 
-    // Code-generated sounds (No links required)
     function beep(freq, duration, type = 'sine', vol = 0.1) {
         if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
@@ -107,12 +119,8 @@
         if(!running) return;
         let t = (Date.now() - startT) / 1000;
         multiplier = Math.pow(1.17, t * 3.5).toFixed(2);
-        
         if(parseFloat(multiplier) >= crashAt) return end(true);
-        
-        // Continuous engine sound (synthesized)
         if(Math.random() < 0.08) beep(100 + (multiplier * 20), 0.1, 'sawtooth', 0.03);
-
         multD.innerText = multiplier + "x";
         draw(t);
         aid = requestAnimationFrame(game);
@@ -132,14 +140,14 @@
     function cash() {
         let amt = parseFloat(document.getElementById('bet').value);
         bal += (amt * multiplier);
-        beep(880, 0.6, 'sine', 0.2); // Success Chime
+        beep(880, 0.6, 'sine', 0.2);
         end(false);
     }
 
     function end(c) {
         running = false; cancelAnimationFrame(aid);
         if(c) {
-            beep(60, 0.5, 'square', 0.3); // Deep Crash
+            beep(60, 0.5, 'square', 0.3);
             multD.innerText = "FLEW AWAY!"; multD.style.color = "var(--red)"; pln.style.display = "none";
         }
         bt.innerText = "BET"; bt.className = "bet-btn";
