@@ -1,41 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Jarvis Aviator Pro+</title>
+<title>Jarvis Aviator Ultimate</title>
 
 <style>
 body{
+  margin:0;
   background:#020617;
   color:white;
   font-family:system-ui;
   text-align:center;
 }
 
-h1{color:#22c55e;}
+h1{color:#22c55e; margin:10px;}
 
 #multiplier{
-  font-size:75px;
-  font-weight:bold;
+  font-size:80px;
   text-shadow:0 0 25px red;
 }
 
 #gameArea{
   position:relative;
-  width:360px;
-  height:260px;
-  margin:auto;
-  border-radius:12px;
-  background:#020617;
-  border:1px solid #1e293b;
+  width:100%;
+  height:300px;
   overflow:hidden;
-  box-shadow:0 0 35px rgba(255,0,0,0.3);
+  border-top:1px solid #1e293b;
+  border-bottom:1px solid #1e293b;
+}
+
+/* GRID BACKGROUND */
+#grid{
+  position:absolute;
+  width:200%;
+  height:100%;
+  background:
+    linear-gradient(#0f172a 1px, transparent 1px),
+    linear-gradient(90deg,#0f172a 1px, transparent 1px);
+  background-size:40px 40px;
+  animation:moveGrid 2s linear infinite;
+}
+
+@keyframes moveGrid{
+  from{transform:translateX(0);}
+  to{transform:translateX(-40px);}
 }
 
 canvas{position:absolute;}
 
 #plane{
   position:absolute;
-  font-size:30px;
+  font-size:34px;
   transform:translate(-50%,-50%);
   filter:drop-shadow(0 0 10px red);
 }
@@ -65,20 +79,21 @@ button{
 <button id="cashBtn" onclick="cashOut()">Cash Out</button>
 
 <div id="gameArea">
-  <canvas id="graph" width="360" height="260"></canvas>
+  <div id="grid"></div>
+  <canvas id="graph" width="800" height="300"></canvas>
   <div id="plane">✈️</div>
 </div>
 
 <p id="result"></p>
 
-<!-- SOUND -->
+<!-- 🔊 SOUND -->
 <audio id="engine" src="https://www.soundjay.com/mechanical/airplane-flying-01.mp3" loop></audio>
 <audio id="crash" src="https://www.soundjay.com/explosion/explosion-01.mp3"></audio>
 
 <script>
 
 let multiplier=1, balance=1000, bet=100;
-let crashed=true, x=0;
+let crashed=true, x=50;
 
 let ctx=document.getElementById("graph").getContext("2d");
 let plane=document.getElementById("plane");
@@ -86,9 +101,7 @@ let plane=document.getElementById("plane");
 let engine=document.getElementById("engine");
 let crashSound=document.getElementById("crash");
 
-let animation;
-
-// START
+// START GAME
 function startGame(){
 
 bet=parseInt(document.getElementById("bet").value);
@@ -99,13 +112,13 @@ document.getElementById("balance").innerText="Balance: ₹"+balance;
 
 multiplier=1;
 crashed=false;
-x=0;
+x=50;
 
-ctx.clearRect(0,0,360,260);
+ctx.clearRect(0,0,800,300);
 ctx.beginPath();
-ctx.moveTo(0,260);
+ctx.moveTo(50,280);
 
-// SOUND start
+// 🔊 ENGINE SOUND START
 engine.currentTime=0;
 engine.play();
 
@@ -113,17 +126,17 @@ function animate(){
 
 if(crashed) return;
 
-multiplier*=1.02;
+multiplier*=1.025;
 document.getElementById("multiplier").innerText=multiplier.toFixed(2)+"x";
 
 // smooth curve
-let y=260-Math.pow(multiplier,1.7)*3.5;
-if(y<25) y=25;
+let y=280-Math.pow(multiplier,1.6)*3;
+if(y<40) y=40;
 
 // glow line
 ctx.strokeStyle="red";
 ctx.shadowBlur=25;
-ctx.lineWidth=3;
+ctx.lineWidth=5;
 ctx.lineTo(x,y);
 ctx.stroke();
 
@@ -131,16 +144,17 @@ ctx.stroke();
 plane.style.left=x+"px";
 plane.style.top=y+"px";
 
+// tilt
 let angle=Math.min(50,multiplier*4);
 plane.style.transform=`translate(-50%,-50%) rotate(${angle}deg)`;
 
-x+=2;
+x+=3;
 
 // crash logic
-if(Math.random()<0.012+multiplier/130){
+if(Math.random()<0.012+multiplier/120){
 crashed=true;
 
-// SOUND stop + crash
+// 🔊 SOUND STOP + CRASH
 engine.pause();
 crashSound.play();
 
@@ -148,7 +162,7 @@ document.getElementById("result").innerText="💥 "+multiplier.toFixed(2)+"x";
 return;
 }
 
-animation=requestAnimationFrame(animate);
+requestAnimationFrame(animate);
 }
 
 animate();
