@@ -3,233 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jarvis Aviator Pro</title>
+    <title>Aviator Elite Edition</title>
     <style>
         :root {
-            --bg: #050505;
-            --card: #14151a;
-            --red: #d91c5c;
-            --green: #28a745;
-            --gold: #ffc107;
+            --bg: #000000;
+            --panel: rgba(28, 28, 30, 0.8);
+            --red-glow: #ff003c;
+            --green: #2ecc71;
+            --gold: #f1c40f;
         }
 
         body {
             margin: 0; background: var(--bg); color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
-            display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;
+            font-family: -apple-system, system-ui, sans-serif;
+            height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;
         }
 
-        /* Initial Audio Unlock Overlay */
-        #unlock-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 999; display: flex;
-            flex-direction: column; justify-content: center; align-items: center;
+        /* Sound Unlock Overlay */
+        #overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
         }
 
-        .main-container { width: 95%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; }
+        #overlay button {
+            padding: 20px 50px; font-size: 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: var(--red-glow); color: white; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.5); text-transform: uppercase; letter-spacing: 2px;
+        }
 
-        /* Multiplier Area */
-        .game-view {
-            position: relative; height: 320px; background: #000;
-            border-radius: 20px; border: 1px solid #2d2d2d; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
+        .main-app { width: 92%; max-width: 420px; display: flex; flex-direction: column; gap: 15px; }
+
+        /* Premium Header */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
+        .balance-pill { 
+            background: rgba(46, 204, 113, 0.1); border: 1px solid var(--green);
+            padding: 6px 15px; border-radius: 20px; color: var(--green); font-weight: 800;
+        }
+
+        /* High-End Game Stage */
+        .stage {
+            position: relative; height: 380px; background: #050505; border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.05); overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0,0,0,1);
         }
 
         #multiplier {
-            font-size: 70px; font-weight: 900; z-index: 10;
-            transition: transform 0.1s linear;
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 85px; font-weight: 900; z-index: 10; font-variant-numeric: tabular-nums;
+            background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        #plane-svg {
-            position: absolute; width: 50px; z-index: 11; display: none;
-            filter: drop-shadow(0 0 10px var(--red));
+        #plane-icon {
+            position: absolute; width: 60px; z-index: 12; display: none;
+            filter: drop-shadow(0 0 15px var(--red-glow));
         }
 
-        /* Control Panel */
+        /* Glass Controls */
         .controls {
-            background: var(--card); padding: 20px; border-radius: 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            background: var(--panel); backdrop-filter: blur(20px);
+            padding: 20px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        .bet-input-wrap {
-            display: flex; background: #000; border-radius: 12px; padding: 5px 15px;
-            align-items: center; border: 1px solid #333; width: 80%;
+        .input-box {
+            background: rgba(0,0,0,0.4); border-radius: 14px; padding: 12px;
+            margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center;
         }
 
-        input {
-            background: transparent; border: none; color: white; font-size: 24px;
-            width: 100%; text-align: center; outline: none; font-weight: bold;
+        .input-box input {
+            background: transparent; border: none; color: white; width: 100%;
+            text-align: center; font-size: 26px; font-weight: 900; outline: none;
         }
 
-        #action-btn {
-            width: 100%; padding: 18px; border-radius: 15px; border: none;
-            font-size: 22px; font-weight: 900; text-transform: uppercase; transition: 0.2s;
+        #main-btn {
+            width: 100%; padding: 20px; border-radius: 16px; border: none;
+            font-size: 24px; font-weight: 900; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .bet-mode { background: var(--green); color: white; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4); }
-        .cash-mode { background: #f59e0b; color: white; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+        .btn-bet { background: var(--green); color: white; box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3); }
+        .btn-cash { background: var(--gold); color: #000; box-shadow: 0 10px 20px rgba(241, 196, 15, 0.3); }
+        
+        #main-btn:active { transform: scale(0.96); }
 
-        .flew-away { color: var(--red) !important; animation: shake 0.4s; }
-
-        @keyframes shake {
-            0%, 100% { transform: translate(0,0); }
-            25% { transform: translate(-8px,0); }
-            75% { transform: translate(8px,0); }
+        .flew { animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 
+            0%, 100% { transform: translate(-50%, -50%); }
+            20% { transform: translate(-54%, -50%); } 
+            40% { transform: translate(-46%, -50%); }
+            60% { transform: translate(-52%, -50%); }
         }
-
-        .stats { display: flex; justify-content: space-between; width: 100%; font-size: 13px; color: #888; }
-        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
-<div id="unlock-screen" onclick="unlockAudio()">
-    <div style="font-size: 50px; margin-bottom: 20px;">✈️</div>
-    <button style="padding: 15px 30px; border-radius: 30px; border: none; background: var(--red); color: white; font-weight: bold;">TAP TO START GAME</button>
-    <p style="color: #666; font-size: 12px; margin-top: 15px;">Enable Sound for iPhone</p>
+<div id="overlay" onclick="initAudio()">
+    <div style="font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--red-glow));">✈️</div>
+    <button>ENTER COCKPIT</button>
 </div>
 
-<div class="main-container">
-    <div class="stats">
-        <span>ID: #552910</span>
-        <span style="color: var(--green); font-weight: bold;">₹<span id="balance">1000.00</span></span>
+<div class="main-app">
+    <div class="header">
+        <span style="color:#666; font-size: 12px; letter-spacing: 1px;">ELITE REPLICA v2.0</span>
+        <div class="balance-pill">₹<span id="bal-val">1000.00</span></div>
     </div>
 
-    <div class="game-view">
+    <div class="stage">
         <div id="multiplier">1.00x</div>
-        <svg id="plane-svg" viewBox="0 0 64 64"><path fill="#ff0000" d="M62,32c0-1.1-0.9-2-2-2H42.7L28.1,7.2C27.6,6.5,26.8,6,25.9,6h-5.5c-0.8,0-1.4,0.7-1.3,1.5l5,18.5H10.2l-3.4-6.8 C6.4,18.5,5.7,18,5,18H2c-0.6,0-1,0.4-1,1s0.4,1,1,1h1.6l3.4,6.8c0.2,0.4,0.6,0.7,1.1,0.7h16.2L18.9,47.5c-0.1,0.3-0.1,0.6,0.1,0.9 c0.2,0.3,0.5,0.5,0.9,0.5h5.5c0.9,0,1.7-0.5,2.2-1.2L42.7,34H60C61.1,34,62,33.1,62,32z"/></svg>
-        <canvas id="canvas"></canvas>
+        <svg id="plane-icon" viewBox="0 0 64 64">
+            <path fill="#ff003c" d="M62,32c0-1.1-0.9-2-2-2H42.7L28.1,7.2C27.6,6.5,26.8,6,25.9,6h-5.5c-0.8,0-1.4,0.7-1.3,1.5l5,18.5H10.2l-3.4-6.8 C6.4,18.5,5.7,18,5,18H2c-0.6,0-1,0.4-1,1s0.4,1,1,1h1.6l3.4,6.8c0.2,0.4,0.6,0.7,1.1,0.7h16.2L18.9,47.5c-0.1,0.3-0.1,0.6,0.1,0.9 c0.2,0.3,0.5,0.5,0.9,0.5h5.5c0.9,0,1.7-0.5,2.2-1.2L42.7,34H60C61.1,34,62,33.1,62,32z"/>
+        </svg>
+        <canvas id="graph"></canvas>
     </div>
 
     <div class="controls">
-        <div class="bet-input-wrap">
-            <span style="color: #666; font-weight: bold;">₹</span>
-            <input type="number" id="bet-amt" value="100">
+        <div class="input-box">
+            <span style="color:#444; font-weight:bold; font-size: 20px;">₹</span>
+            <input type="number" id="amount" value="100" inputmode="decimal">
         </div>
-        <button id="action-btn" class="bet-mode" onclick="handleInput()">BET</button>
+        <button id="main-btn" class="btn-bet" onclick="handleInteraction()">BET</button>
     </div>
 </div>
 
 <script>
-    // Audio Context (iPhone needs this triggered by click)
-    let audioCtx;
-    const sounds = {
-        engine: new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_2492167e7d.mp3'),
-        crash: new Audio('https://cdn.pixabay.com/audio/2022/03/10/audio_c3523e58c5.mp3'),
-        win: new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_0625c15354.mp3')
+    let audioContext, engineSnd;
+    const soundURLs = {
+        crash: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c3523e58c5.mp3',
+        win: 'https://cdn.pixabay.com/audio/2021/08/04/audio_0625c15354.mp3',
+        engine: 'https://cdn.pixabay.com/audio/2022/03/15/audio_2492167e7d.mp3'
     };
-    sounds.engine.loop = true;
 
-    function unlockAudio() {
-        document.getElementById('unlock-screen').style.display = 'none';
-        // Play and pause all sounds once to "warm up" audio on iPhone
-        Object.values(sounds).forEach(s => { s.play(); s.pause(); });
+    function initAudio() {
+        document.getElementById('overlay').style.display = 'none';
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        engineSnd = new Audio(soundURLs.engine);
+        engineSnd.loop = true; engineSnd.volume = 0.4;
+        new Audio(soundURLs.crash).load(); new Audio(soundURLs.win).load();
     }
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const multText = document.getElementById('multiplier');
-    const plane = document.getElementById('plane-svg');
-    const btn = document.getElementById('action-btn');
+    function playSnd(url) {
+        if (!audioContext) return;
+        const a = new Audio(url); a.play().catch(() => {});
+    }
 
-    let balance = 1000, multiplier = 1.0, isRunning = false, crashAt = 0, startT = 0, animId;
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d');
+    const multDiv = document.getElementById('multiplier');
+    const plane = document.getElementById('plane-icon');
+    const mainBtn = document.getElementById('main-btn');
+
+    let balance = 1000, multiplier = 1.0, isRunning = false, crashVal = 0, startT = 0, animId;
 
     function resize() { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
     window.onresize = resize; resize();
 
-    function handleInput() {
-        if (!isRunning) startRound();
-        else cashOut();
-    }
+    function handleInteraction() { if (!isRunning) startRound(); else cashOut(); }
 
     function startRound() {
-        let bet = parseFloat(document.getElementById('bet-amt').value);
-        if (bet > balance) return alert("Low Balance!");
-
+        let bet = parseFloat(document.getElementById('amount').value);
+        if (bet > balance) return;
         balance -= bet;
-        updateUI();
+        document.getElementById('bal-val').innerText = balance.toFixed(2);
+        
+        isRunning = true; multiplier = 1.0;
+        let r = Math.random();
+        if (r < 0.1) crashVal = 1.0 + Math.random() * 0.1;
+        else if (r < 0.75) crashVal = 1.2 + Math.random() * 1.8;
+        else crashVal = 3.5 + Math.random() * 10;
 
-        isRunning = true;
-        multiplier = 1.0;
-        
-        // --- NATURAL LOGIC ---
-        // 10% chance: Instant crash (1.00x - 1.05x)
-        // 60% chance: Small win (1.1x - 2.5x)
-        // 30% chance: Big run (3x - 15x)
-        let rand = Math.random();
-        if (rand < 0.1) crashAt = 1 + Math.random() * 0.05;
-        else if (rand < 0.7) crashAt = 1.1 + Math.random() * 1.4;
-        else crashAt = 3 + Math.random() * 12;
-
-        btn.innerText = "CASH OUT";
-        btn.className = "cash-mode";
-        multText.classList.remove('flew-away');
-        plane.style.display = "block";
-        
-        sounds.engine.currentTime = 0;
-        sounds.engine.play();
-        
-        startT = Date.now();
-        animate();
+        mainBtn.innerText = "CASH OUT"; mainBtn.className = "btn-cash";
+        multDiv.classList.remove('flew'); plane.style.display = "block";
+        if (engineSnd) { engineSnd.currentTime = 0; engineSnd.play(); }
+        startT = Date.now(); animate();
     }
 
     function animate() {
         if (!isRunning) return;
         let elapsed = (Date.now() - startT) / 1000;
-        
-        // Smooth exponential growth
-        multiplier = Math.pow(1.15, elapsed * 3.5).toFixed(2);
+        multiplier = Math.pow(1.15, elapsed * 3.2).toFixed(2);
 
-        if (parseFloat(multiplier) >= crashAt) return finish(true);
-        
-        multText.innerText = multiplier + "x";
+        if (parseFloat(multiplier) >= crashVal) return finish(true);
+        multDiv.innerText = multiplier + "x";
         draw(elapsed);
         animId = requestAnimationFrame(animate);
     }
 
     function draw(t) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        let px = t * 65, py = canvas.height - (Math.pow(1.1, px/7) * 12);
+        let x = t * 65, y = canvas.height - (Math.pow(1.11, x/7.5) * 15);
         
-        ctx.beginPath(); ctx.strokeStyle = "#d91c5c"; ctx.lineWidth = 5;
-        ctx.shadowBlur = 15; ctx.shadowColor = "red";
+        // --- PREMIUM GLOW LINE ---
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 0, 60, 0.8)";
+        ctx.lineWidth = 6;
+        ctx.lineCap = "round";
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#ff003c";
         ctx.moveTo(0, canvas.height);
-        for(let i=0; i<px; i++) ctx.lineTo(i, canvas.height - (Math.pow(1.1, i/7) * 12));
+        for(let i=0; i<x; i++) {
+            let cx = i;
+            let cy = canvas.height - (Math.pow(1.11, i/7.5) * 15);
+            ctx.lineTo(cx, cy);
+        }
         ctx.stroke();
+        ctx.shadowBlur = 0; // Stop blur for other elements
 
-        plane.style.left = (px - 25) + "px"; plane.style.top = (py - 25) + "px";
-        plane.style.transform = `rotate(-${Math.min(px/5, 35)}deg)`;
+        // --- PARTICLE EFFECT (SMOKE) ---
+        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+        for(let j=0; j<5; j++) {
+            ctx.beginPath();
+            ctx.arc(x - 10 - (Math.random()*15), y + 5 + (Math.random()*10), 2, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // --- PLANE MOVEMENT ---
+        plane.style.left = (x - 28) + "px";
+        plane.style.top = (y - 30) + "px";
+        // Subtle vibration + Rotation
+        let vib = Math.sin(Date.now()/50) * 2;
+        let rot = Math.min(x/5, 38);
+        plane.style.transform = `translateY(${vib}px) rotate(-${rot}deg)`;
     }
 
     function cashOut() {
-        if (!isRunning) return;
-        let bet = parseFloat(document.getElementById('bet-amt').value);
+        let bet = parseFloat(document.getElementById('amount').value);
         balance += (bet * multiplier);
-        sounds.win.play();
+        playSnd(soundURLs.win);
         finish(false);
     }
 
     function finish(crashed) {
-        isRunning = false;
-        cancelAnimationFrame(animId);
-        sounds.engine.pause();
-        
+        isRunning = false; cancelAnimationFrame(animId);
+        if (engineSnd) engineSnd.pause();
         if (crashed) {
-            sounds.crash.play();
-            multText.innerText = "FLEW AWAY!";
-            multText.classList.add('flew-away');
+            playSnd(soundURLs.crash);
+            multDiv.innerText = "FLEW AWAY!";
+            multDiv.classList.add('flew');
             plane.style.display = "none";
         }
-        
-        btn.innerText = "BET";
-        btn.className = "bet-mode";
-        updateUI();
-    }
-
-    function updateUI() {
-        document.getElementById('balance').innerText = balance.toFixed(2);
+        mainBtn.innerText = "BET"; mainBtn.className = "btn-bet";
+        document.getElementById('bal-val').innerText = balance.toFixed(2);
     }
 </script>
-
 </body>
 </html>
