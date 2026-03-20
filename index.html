@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Jarvis Aviator Ultimate Fix</title>
+<style>
+body {
+  background:#020617;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+h1 {color:#22c55e;}
+
+#multiplier {
+  font-size:60px;
+  text-shadow:0 0 15px red;
+}
+
+#balance {margin:10px;}
+
+#gameArea {
+  position:relative;
+  width:340px;
+  height:240px;
+  margin:auto;
+  background:#020617;
+  border-radius:10px;
+  overflow:hidden;
+  border:1px solid #1e293b;
+}
+
+canvas {position:absolute;}
+
+#plane {
+  position:absolute;
+  font-size:20px;
+  transform: translate(-50%, -50%);
+  transition: all 0.1s linear;
+  filter: drop-shadow(0 0 6px red);
+}
+
+button {
+  padding:8px 16px;
+  margin:5px;
+  border:none;
+  border-radius:5px;
+  font-size:14px;
+}
+
+#betBtn {background:#22c55e;}
+#cashBtn {background:#ef4444;}
+
+#players {
+  height:50px;
+  overflow:hidden;
+  font-size:12px;
+  opacity:0.8;
+}
+
+#history span {
+  margin:3px;
+  font-size:12px;
+  color:#22c55e;
+}
+</style>
+</head>
+
+<body>
+
+<h1>✈️ Jarvis Aviator Ultimate</h1>
+
+<div id="balance">Balance: ₹1000</div>
+<div id="multiplier">1.00x</div>
+
+<input type="number" id="bet" value="100">
+<input type="number" id="autoCash" placeholder="Auto Cashout x"><br>
+
+<button id="betBtn" onclick="startGame()">Bet</button>
+<button id="cashBtn" onclick="cashOut()">Cash Out</button>
+
+<div id="gameArea">
+  <canvas id="graph" width="340" height="240"></canvas>
+  <div id="plane">✈️</div>
+</div>
+
+<div style="margin-top:10px;">
+  <div id="players"></div>
+  <div id="history"></div>
+</div>
+
+<p id="result"></p>
+
+<script>
+let multiplier=1;
+let balance=1000;
+let bet=100;
+let crashed=false;
+let interval;
+let x=0;
+
+let ctx=document.getElementById("graph").getContext("2d");
+let plane=document.getElementById("plane");
+
+let history=[];
+
+function fakePlayers(){
+let names=["Ravi","Amit","Neha","Suresh","Pooja"];
+let text="";
+names.forEach(n=>{
+let m=(Math.random()*4+1).toFixed(2);
+text+=n+" "+m+"x<br>";
+});
+document.getElementById("players").innerHTML=text;
+}
+
+function updateHistory(m){
+history.unshift(m);
+history=history.slice(0,5);
+let html="";
+history.forEach(h=> html+="<span>"+h+"x</span>");
+document.getElementById("history").innerHTML=html;
+}
+
+function startGame(){
+
+bet=parseInt(document.getElementById("bet").value);
+if(bet>balance) return alert("Low balance");
+
+balance-=bet;
+document.getElementById("balance").innerText="Balance: ₹"+balance;
+
+multiplier=1;
+crashed=false;
+x=0;
+
+ctx.clearRect(0,0,340,240);
+ctx.beginPath();
+ctx.moveTo(0,240);
+
+interval=setInterval(()=>{
+
+multiplier*=1.02;
+document.getElementById("multiplier").innerText=multiplier.toFixed(2)+"x";
+
+// SAFE Y CALCULATION
+let y = 240 - Math.pow(multiplier,1.5)*5;
+
+// LIMIT so plane never disappears
+if(y < 20) y = 20;
+
+// GRAPH
+ctx.strokeStyle="red";
+ctx.shadowBlur=10;
+ctx.lineWidth=3;
+ctx.lineTo(x,y);
+ctx.stroke();
+
+// PLANE (perfect center alignment)
+plane.style.left = x + "px";
+plane.style.top = y + "px";
+
+x+=3;
+
+// Controlled fake players
+if(Math.random()<0.3) fakePlayers();
+
+// Auto cashout
+let auto=document.getElementById("autoCash").value;
+if(auto && multiplier>=auto) cashOut();
+
+// Crash logic
+if(Math.random()<0.01+multiplier/150){
+clearInterval(interval);
+crashed=true;
+updateHistory(multiplier.toFixed(2));
+document.getElementById("result").innerText="💥 Crash "+multiplier.toFixed(2)+"x";
+}
+
+},100);
+}
+
+function cashOut(){
+if(!crashed && interval){
+clearInterval(interval);
+
+let win=bet*multiplier;
+balance+=Math.floor(win);
+
+document.getElementById("balance").innerText="Balance: ₹"+balance;
+
+updateHistory(multiplier.toFixed(2));
+
+document.getElementById("result").innerText="✅ Cashed "+multiplier.toFixed(2)+"x";
+}
+}
+</script>
+
+</body>
+</html>
